@@ -1,0 +1,37 @@
+▪ Create a Docker service for cAdvisor and redis
+Syntax: vi compose.yml
+
+version: '3.2'
+services:
+ cadvisor:
+ image: gcr.io/cadvisor/cadvisor:latest
+ container_name: cadvisor
+ ports:
+ - 8087:8080
+ volumes:
+ - /:/rootfs:ro
+ - /var/run:/var/run:rw
+ - /sys:/sys:ro
+ - /var/lib/docker/:/var/lib/docker:ro
+ depends_on:
+ - redis
+ redis:
+ image: redis:latest
+ container_name: redis
+ ports:
+ - 6379:6379
+
+▪ Now, add cAdvisor as one of your targets in your Prometheus.yml config file
+Syntax: sudo vi /opt/prometheus-2.27/prometheus.yml
+
+ - job_name: 'cAdvisor'
+ scrape_interval: 5s
+ static_configs:
+ - targets: ['localhost:8087']
+
+▪ Restart the Prometheus service
+Syntax: sudo systemctl restart prometheus.service
+
+▪ Now, we can check if the new target is live on our Prometheus dashboard by
+opening the dashboard and checking targets
+To open the dashboard go to: localhost:9090
